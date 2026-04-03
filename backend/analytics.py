@@ -19,13 +19,13 @@ class CinemaAnalytics:
         cursor = conn.cursor(dictionary=True)
         query = """
             WITH SnackSales AS (
-                SELECT s.name, SUM(oi.quantity) as total_sold
+                SELECT s.name, COALESCE(SUM(oi.quantity), 0) as total_sold
                 FROM snacks s
                 LEFT JOIN order_items oi ON s.snack_id = oi.snack_id
-                GROUP BY s.snack_id
+                GROUP BY s.snack_id, s.name
             )
             SELECT name, total_sold,
-                   RANK() OVER (ORDER BY total_sold DESC) as sales_rank
+                RANK() OVER (ORDER BY total_sold DESC) as sales_rank
             FROM SnackSales;
         """
         cursor.execute(query)
