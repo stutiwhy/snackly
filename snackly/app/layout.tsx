@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/ui/Navbar";
+import { AuthProvider } from "@/app/context/AuthContext"; // Import the Provider
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -25,8 +26,13 @@ export default function RootLayout({
         geistMono.variable, 
         "antialiased bg-background text-foreground font-mono"
       )}>
-        <Navbar /> {/* This stays on every page */}
-        {children}
+        {/* Wrap everything in the AuthProvider */}
+        <AuthProvider>
+          <Navbar /> 
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );
