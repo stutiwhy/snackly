@@ -1,3 +1,4 @@
+import os
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -5,10 +6,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class CinemaDB:
     def __init__(self):
         self.config = {
-            'host': 'localhost',
-            'user': 'snackly',
-            'password': 'get-food', 
-            'database': 'cinema_snack_system'
+            'host': os.getenv("DB_HOST"),
+            'user': os.getenv("DB_USER"),
+            'password': os.getenv("DB_PASSWORD"),
+            'database': os.getenv("DB_NAME"),
+            'port': int(os.getenv("DB_PORT", 4000)),
+            'ssl_disabled': False,
+            'use_pure': True
         }
 
     def get_connection(self):
