@@ -13,12 +13,13 @@ CREATE TABLE users (
 CREATE TABLE snacks (
     snack_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    category ENUM('Popcorn', 'Drink', 'Candy', 'Combo') NOT NULL,
-    price INT NOT NULL, 
+    category ENUM('Popcorn', 'Drink', 'Snack', 'Combo') NOT NULL,
+    price DECIMAL(10, 2) NOT NULL, 
     stock_quantity INT NOT NULL DEFAULT 0,
-    is_available BOOLEAN DEFAULT TRUE
+    is_available BOOLEAN DEFAULT TRUE,
+    image_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -36,7 +37,7 @@ CREATE TABLE order_items (
     order_id INT,
     snack_id INT,
     quantity INT NOT NULL,
-    price_at_time INT NOT NULL,
+    price_at_time DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (snack_id) REFERENCES snacks(snack_id)
 );
@@ -74,7 +75,7 @@ CREATE PROCEDURE AddItemToOrder(
     IN p_qty INT
 )
 BEGIN
-    DECLARE v_price INT;
+    DECLARE v_price DECIMAL(10,2);
     SELECT price INTO v_price FROM snacks WHERE snack_id = p_snack_id;
     
     INSERT INTO order_items (order_id, snack_id, quantity, price_at_time)
@@ -116,12 +117,12 @@ DELIMITER ;
 
 
 
-INSERT INTO users (username, password, role) VALUES 
-('admin', 'admin123', 'admin'),
-('user', 'user123', 'customer');
+-- INSERT INTO users (username, password, role) VALUES 
+-- ('admin', 'admin123', 'admin'),
+-- ('user', 'user123', 'customer');
 
 INSERT INTO snacks (name, category, price, stock_quantity) VALUES
 ('Caramel Popcorn', 'Popcorn', 250, 40),
 ('Pepsi Black', 'Drink', 90, 100),
-('Peri Peri Fries', 'Candy', 180, 25),
+('Peri Peri Fries', 'Snack', 180, 25),
 ('Movie Night Combo', 'Combo', 500, 15);
