@@ -72,35 +72,64 @@ class CinemaDB:
         conn.close()
 
     def place_order(self, user_id, hall, seat, cart):
-            conn = self.get_connection()
-            cursor = conn.cursor(buffered=True) 
-            try:
-                u_id = int(user_id)
-                h_num = int(hall)
+        conn = self.get_connection()
+        cursor = conn.cursor(dictionary=True) 
+        try:
+            # STEP 1: Insert Order Header (Replacing CreateOrderHeader proc)
+            cursor.execute(
+                "INSERT INTO orders (user_id, hall_number, seat_number, total_price) VALUES (%s, %s, %s, 0)",
+                (int(user_id), int(hall), seat)
+            )
+            order_id = cursor.lastrowid
+            running_total = 0
 
-                args = [u_id, h_num, seat, 0]
-                result_args = cursor.callproc('CreateOrderHeader', args)
-                
-                order_id = result_args[3]
+            # STEP 2: Process Items (Replacing AddItemToOrder proc)
+            for item in cart:
+                snack_id = int(item.get('id') or item.get('snack_id'))
+                qty = int(item.get('qty') or item.get('quantity'))
 
-                if not order_id or order_id == 0:
-                    cursor.execute("SELECT LAST_INSERT_ID()")
-                    order_id = cursor.fetchone()[0]
+                # Get price and current stock for manual trigger logic
+                cursor.execute("SELECT name, price, stock_quantity FROM snacks WHERE snack_id = %s", (snack_id,))
+                snack = cursor.fetchone()
 
-                for item in cart:
-                    snack_id = int(item.get('id') or item.get('snack_id'))
-                    qty = int(item.get('qty') or item.get('quantity'))
-                    cursor.callproc('AddItemToOrder', (order_id, snack_id, qty))
-                
-                conn.commit()
-                return True, f"Order #{order_id} placed successfully!"
-            except Error as e:
-                conn.rollback()
-                print(f"Database Error: {e}") 
-                return False, str(e)
-            finally:
-                cursor.close()
-                conn.close()
+                if not snack: continue
+
+                # Update running total
+                item_total = snack['price'] * qty
+                running_total += item_total
+
+                # Insert into order_items
+                cursor.execute(
+                    "INSERT INTO order_items (order_id, snack_id, quantity, price_at_time) VALUES (%s, %s, %s, %s)",
+                    (order_id, snack_id, qty, snack['price'])
+                )
+
+                # Update Snack Stock
+                new_stock = snack['stock_quantity'] - qty
+                cursor.execute(
+                    "UPDATE snacks SET stock_quantity = %s WHERE snack_id = %s",
+                    (new_stock, snack_id)
+                )
+
+                # STEP 3: Manual Trigger (Replacing low_stock_warning trigger)
+                if new_stock < 5:
+                    cursor.execute(
+                        "INSERT INTO inventory_logs (msg) VALUES (%s)",
+                        (f"URGENT: {snack['name']} is nearly out of stock! Current: {new_stock}",)
+                    )
+
+            # Finalize Total Price in Order Header
+            cursor.execute("UPDATE orders SET total_price = %s WHERE order_id = %s", (running_total, order_id))
+            
+            conn.commit()
+            return True, f"Order #{order_id} placed successfully!"
+        except Error as e:
+            conn.rollback()
+            print(f"Database Error: {e}")
+            return False, str(e)
+        finally:
+            cursor.close()
+            conn.close()
 
 
 
