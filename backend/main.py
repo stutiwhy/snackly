@@ -4,7 +4,7 @@ from analytics import CinemaAnalytics
 from database import CinemaDB
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "https://stu-snackly.netlify.app"}})
 
 db = CinemaDB()
 analytics = CinemaAnalytics()
