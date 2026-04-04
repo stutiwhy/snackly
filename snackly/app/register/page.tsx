@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Register() {
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  
   const [formData, setFormData] = useState({ username: "", password: "", role: "customer" });
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,7 +23,7 @@ export default function Register() {
     setError("");
     
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
