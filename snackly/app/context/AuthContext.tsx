@@ -6,14 +6,14 @@ import { useRouter, usePathname } from "next/navigation";
 interface User {
   username: string;
   role: "admin" | "customer";
-  user_id: number; // Removed optional '?' as we need this for logic
+  user_id: number;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
-  isLoading: boolean; // Added to prevent flickering during rehydration
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,13 +24,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // 1. REHYDRATION: Read cookies when the app first loads
+  // 1. REHYDRATION: Improved check
   useEffect(() => {
     const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : null;
     };
 
     const session = getCookie("session_active");
@@ -38,9 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedId = getCookie("stored_user_id");
     const storedRole = getCookie("stored_role");
 
+    // Strictly check for the string "true"
     if (session === "true" && storedUsername && storedId) {
       setUser({
-        username: storedUsername,
+        username: decodeURIComponent(storedUsername), // Handle special characters in names
         user_id: parseInt(storedId),
         role: (storedRole as "admin" | "customer") || "customer",
       });
@@ -58,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData);
-    
+
     // Set cookies so Middleware and Refresh work together
     const expires = "; max-age=3600; path=/; SameSite=Lax";
     document.cookie = `session_active=true${expires}`;
@@ -70,14 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     
-    // Clear all cookies
-    const expireNow = "; max-age=0; path=/";
-    document.cookie = `session_active=false${expireNow}`;
-    document.cookie = `stored_username=${expireNow}`;
-    document.cookie = `stored_user_id=${expireNow}`;
-    document.cookie = `stored_role=${expireNow}`;
+    // Use a helper to clear cookies properly
+    const cookies = ["session_active", "stored_username", "stored_user_id", "stored_role"];
+    cookies.forEach(name => {
+      // Setting an old date is the most reliable way to delete
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
+    });
     
-    router.push("/login");
+    router.replace("/login"); // replace is better than push for logout to clear history
   };
 
   return (

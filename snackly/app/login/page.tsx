@@ -15,6 +15,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const { login } = useAuth();
   
+  console.log("Current Backend Target:", API_URL);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -28,7 +30,6 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        document.cookie = "session_active=true; path=/; max-age=3600"; // Expires in 1 hour
         login(data.user); // Only stored in memory now
       } else {
         setError(data.error || "Access Denied");

@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+backend/venv/
+.env
+
+# Next.js build output
+.next/
+out/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
