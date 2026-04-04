@@ -9,16 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function Login() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const { login } = useAuth();
-
+  
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
