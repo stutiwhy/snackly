@@ -21,6 +21,9 @@ const STATUS_COLORS: Record<string, string> = {
     Cancelled: "bg-destructive/20 text-destructive border-destructive/50",
 };
 
+// It uses the Render URL if available, otherwise falls back to localhost for your laptop
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function AdminDashboard() {
     const { user } = useAuth();
     const [orders, setOrders] = useState<any[]>([]);
@@ -49,18 +52,17 @@ export default function AdminDashboard() {
     const loadData = useCallback(async () => {
         setIsSyncing(true);
         try {
-            // FIX: Destructure all 5 results from the Promise.all array
             const [ord, snk, ranks, conv, halls] = await Promise.all([
-                fetch("http://localhost:5000/api/admin/orders").then(res => res.json()),
-                fetch("http://localhost:5000/api/snacks").then(res => res.json()),
-                fetch("http://localhost:5000/api/rankings").then(res => res.json()),
-                fetch("http://localhost:5000/api/conversion").then(res => res.json()),
-                fetch("http://localhost:5000/api/occupancy").then(res => res.json()),
+                // UPDATE ALL FETCH CALLS TO USE ${API_URL}
+                fetch(`${API_URL}/api/admin/orders`).then(res => res.json()),
+                fetch(`${API_URL}/api/snacks`).then(res => res.json()),
+                fetch(`${API_URL}/api/rankings`).then(res => res.json()),
+                fetch(`${API_URL}/api/conversion`).then(res => res.json()),
+                fetch(`${API_URL}/api/occupancy`).then(res => res.json()),
             ]);
 
             setOrders(ord);
             setSnacks(snk);
-            // FIX: Set the missing state values so the cards update
             setSnackRanks(ranks);
             setConversion(conv);
             setHallStats(halls);
@@ -71,18 +73,16 @@ export default function AdminDashboard() {
         }
     }, []);
 
-    useEffect(() => { loadData(); }, [loadData]);
-
     const patchSnack = async (id: number, payload: object) => {
-        // Optimistic update
         setSnacks(prev => prev.map(s => s.snack_id === id ? { ...s, ...payload } : s));
 
-        await fetch(`http://localhost:5000/api/admin/snacks/update/${id}`, {
+        // UPDATE THIS FETCH
+        await fetch(`${API_URL}/api/admin/snacks/update/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        loadData(); // Ensure UI is perfectly in sync with DB
+        loadData();
     };
 
     const createSnack = async () => {
@@ -92,25 +92,23 @@ export default function AdminDashboard() {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/admin/snacks/add", {
+            // UPDATE THIS FETCH
+            const response = await fetch(`${API_URL}/api/admin/snacks/add`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: newSnack.name,
                     category: newSnack.category,
                     price: parseFloat(newSnack.price),
-                    stock_quantity: parseInt(newSnack.stock), // Ensure key matches backend (stock_quantity)
+                    stock_quantity: parseInt(newSnack.stock),
                     image_url: newSnack.image_url || "/images/default-snack.png"
                 })
             });
 
             if (response.ok) {
-                setIsCreateOpen(false); // Close Modal
-                setNewSnack({ name: "", category: "Snack", price: "", stock: "", image_url: "" }); // Reset Form
-                loadData(); // Refresh the table list
-            } else {
-                const errorData = await response.json();
-                console.error("Server Error:", errorData.message);
+                setIsCreateOpen(false);
+                setNewSnack({ name: "", category: "Snack", price: "", stock: "", image_url: "" });
+                loadData();
             }
         } catch (err) {
             console.error("Network Error:", err);
@@ -118,14 +116,15 @@ export default function AdminDashboard() {
     };
 
     const updateOrderStatus = async (orderId: number, status: string) => {
-        await fetch("http://localhost:5000/api/admin/orders/status", {
+        // UPDATE THIS FETCH
+        await fetch(`${API_URL}/api/admin/orders/status`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ order_id: orderId, status })
         });
         loadData();
     };
-
+    
     return (
         <div className="p-6 lg:p-12 space-y-10 min-h-screen bg-background text-foreground">
             {/* STATS CARDS */}
