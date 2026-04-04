@@ -409,7 +409,7 @@ export default function AdminDashboard() {
                                                     title: "Delete Item",
                                                     desc: `Are you sure you want to delete "${s.name}" from the menu?`,
                                                     action: async () => {
-                                                        await fetch(`http://localhost:5000/api/admin/snacks/delete/${s.snack_id}`, { method: "DELETE" });
+                                                        await fetch(`${API_URL}/api/admin/snacks/delete/${s.snack_id}`, { method: "DELETE" });
                                                         loadData();
                                                     }
                                                 })}
