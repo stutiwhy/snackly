@@ -9,6 +9,10 @@ CORS(app, resources={r"/api/*": {"origins": "https://stu-snackly.netlify.app"}})
 db = CinemaDB()
 analytics = CinemaAnalytics()
 
+@app.route('/')
+def health_check():
+    return {"status": "we is here", "system": "get-food"}, 200
+
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
