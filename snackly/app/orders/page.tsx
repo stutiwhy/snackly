@@ -17,6 +17,9 @@ interface Order {
 }
 
 export default function MyOrders() {
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    
     // 2. Tell useState this is an array of Orders: <Order[]>
     const [orders, setOrders] = useState<Order[]>([]);
     const { user } = useAuth();
@@ -25,7 +28,7 @@ export default function MyOrders() {
         if (!user?.user_id) return;
 
         const fetchOrders = () => {
-            fetch(`http://localhost:5000/api/orders/history/${user.user_id}`)
+            fetch(`${API_URL}/api/orders/history/${user.user_id}`)
                 .then((res) => res.json())
                 .then((data) => {
                     // 3. Cast the data or ensure it's the right type
