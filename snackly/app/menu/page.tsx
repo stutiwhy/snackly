@@ -24,6 +24,9 @@ interface CartItem extends Snack {
 }
 
 export default function Home() {
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  
   const { user } = useAuth(); // <--- DYNAMIC USER DATA
   const [snacks, setSnacks] = useState<Snack[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -34,7 +37,7 @@ export default function Home() {
   const rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/snacks")
+    fetch(`${API_URL}/api/snacks`)
       .then((res) => res.json())
       .then((data) => setSnacks(data));
   }, []);
@@ -68,7 +71,7 @@ export default function Home() {
         qty: item.qty
       }));
 
-      const response = await fetch("http://localhost:5000/api/orders", {
+      const response = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +93,7 @@ export default function Home() {
         setSeat("");
 
         // refreshing snacks to show updated quantity
-        const res = await fetch("http://localhost:5000/api/snacks");
+        const res = await fetch(`${API_URL}/api/snacks`);
         const data = await res.json();
         setSnacks(data);
       } else {
