@@ -10,7 +10,7 @@ next.js, mysql, flask
 
 wake this up first please!!! render https://snackly.onrender.com
 
-after it's up n running netlify stu-snackly.netlify.app
+after it's up n running netlify https://stu-snackly.netlify.app
 
 you don't need the tidb link!
 
