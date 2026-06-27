@@ -12,7 +12,12 @@ wake this up first please!!! render https://snackly.onrender.com
 
 after it's up n running netlify https://stu-snackly.netlify.app
 
-you don't need the tidb link!
+### sample login creds
+u: customer1 p: customer1
+
+u: admin1 p: admin1
+
+**refresh admin page if it's empty
 
 ## o/p demo ss
 <img src="output-1.png">
